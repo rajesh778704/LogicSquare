@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Joy's Café Search UI</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+        background-image: url(cafe.jpg);
+        height: 100vh;
+        background-size: cover;
+        background-position: center;
+    }
+
+    h1 {
+        text-align: center;
+        margin-top: 20px;
+        margin-bottom: 20px;
+    }
+
+    .search-container {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    #searchInput {
+        flex: 1;
+        padding: 10px;
+        font-size: 16px;
+        box-sizing: border-box;
+    }
+
+    #searchButton {
+        padding: 10px 20px;
+        /*background-color: #4caf50;*/
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    #searchButton:hover {
+        background-color: #45a049;
+    }
+
+    table {
+        border-collapse: collapse;
+        width: 100%;
+        background-color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    th, td {
+        border: 1px solid #dddddd;
+        text-align: left;
+        padding: 12px;
+    }
+
+    th {
+        background-color: #f2f2f2;
+    }
+
+    tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+</style>
+</head>
+<body>
+<h1 >Joy's Café Search UI</h1>
+<div class="search-container">
+    <input type="text" id="searchInput" placeholder="Search cafes by name...">
+    <button id="searchButton">Search</button>
+</div>
+<table id="cafeTable">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Street No</th>
+            <th>Locality</th>
+            <th>Postal Code</th>
+            <th>Latitude</th>
+            <th>Longitude</th>
+        </tr>
+    </thead>
+    <tbody id="cafeList">
+    </tbody>
+</table>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const searchInput = document.getElementById("searchInput");
+    const searchButton = document.getElementById("searchButton");
+    const cafeList = document.getElementById("cafeList");
+
+    // Fetch cafes and places data
+    fetchCafesAndPlaces();
+
+    // Add event listener for search input
+    searchInput.addEventListener("input", function () {
+        filterCafes(this.value.trim().toLowerCase());
+    });
+
+    // Add event listener for search button
+    searchButton.addEventListener("click", function () {
+        filterCafes(searchInput.value.trim().toLowerCase());
+    });
+
+    // Fetch cafes and places data from API endpoints
+    function fetchCafesAndPlaces() {
+        fetch("https://raw.githubusercontent.com/debojyoti/places-fake-rest-api/master/cafes.json")
+            .then(response => response.json())
+            .then(cafes => {
+                fetch("https://raw.githubusercontent.com/debojyoti/places-fake-rest-api/master/places.json")
+                    .then(response => response.json())
+                    .then(places => {
+                        generateCafeList(cafes.cafes, places.places);
+                    })
+                    .catch(error => console.error("Error fetching places data:", error));
+            })
+            .catch(error => console.error("Error fetching cafes data:", error));
+    }
+
+    // Generate cafe list based on cafes and places data
+    function generateCafeList(cafes, places) {
+        cafeList.innerHTML = ""; // Clear existing cafe list
+        cafes.forEach(cafe => {
+            const place = places.find(place => place.location_id === cafe.place_id);
+            if (place) {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${cafe.name}</td>
+                    <td>${place.street_no}</td>
+                    <td>${place.locality}</td>
+                    <td>${place.postal_code}</td>
+                    <td>${place.lat}</td>
+                    <td>${place.long}</td>
+                `;
+                cafeList.appendChild(row);
+            }
+        });
+    }
+
+    // Filter cafes based on search term
+    function filterCafes(searchTerm) {
+        const rows = cafeList.getElementsByTagName("tr");
+        Array.from(rows).forEach(row => {
+            const cafeName = row.getElementsByTagName("td")[0].textContent.toLowerCase();
+            if (cafeName.includes(searchTerm)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+});
+</script>
+</body>
+</html>
